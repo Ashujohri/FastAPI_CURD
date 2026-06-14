@@ -16,3 +16,9 @@ class Register(BaseModel):
         if 'password' in info.data and v != info.data['password']:
             raise ValueError("Password not matched")
         return v
+
+class AuthUser(BaseModel):
+    id: int
+    name: str
+    email: str
+    

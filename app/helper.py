@@ -1,4 +1,7 @@
 from pwdlib import PasswordHash
+import jwt
+from app.config.app_config import getAppConfig
+from datetime import timedelta, datetime, timezone
 
 def hashPassword(password: str) -> str:
     password_hash = PasswordHash.recommended()
@@ -7,3 +10,16 @@ def hashPassword(password: str) -> str:
 def verifyPassword(password: str, hashed_password: str) -> bool:
     password_hash = PasswordHash.recommended()
     return password_hash.verify(password, hashed_password)
+
+def createAcessToken(data: dict, expireInMin: int = 30) -> str:
+    config = getAppConfig()
+    to_encode = data.copy()
+    expire = datetime.now(timezone.utc) + timedelta(minutes=expireInMin)
+    to_encode.update({"exp": expire})
+    encode_jwt = jwt.encode(to_encode, config.secret_key, algorithm=config.algorithm or "HS256")
+    return encode_jwt
+
+def decodeAccessToken(token: str) -> str:
+    config = getAppConfig()
+    payload = jwt.decode(token, config.secret_key, algorithms=[config.algorithm or "HS256"])
+    return payload

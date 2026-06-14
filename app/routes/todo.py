@@ -5,15 +5,17 @@ from sqlalchemy.orm import Session
 from app.database.db import get_db
 from app.database.schema.todo_schema import TodoSchema
 from sqlalchemy import select
+from app.dependancies import autheticate_user
+from app.models.auth import AuthUser
 
-router = APIRouter(prefix="/todo")
+router = APIRouter(prefix="/todo", dependencies=[Depends(autheticate_user)])
 
 @router.get("/")
-def index(db: Annotated[Session, Depends(get_db)]):
+def index(db: Annotated[Session, Depends(get_db)], authUser:Annotated[AuthUser, Depends(autheticate_user)]):
     data = select(TodoSchema.id, TodoSchema.content, TodoSchema.is_completed)
     # todos = db.query(TodoSchema).all()
     todos = db.execute(data).mappings().all()
-    return {"message": "List of all TODO items", "data": todos}
+    return {"message": "List of all TODO items", "data": todos, "authUser": authUser}
 
 @router.get("/{id}")
 def find_by_id(id: int, db: Annotated[Session, Depends(get_db)]):
